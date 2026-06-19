@@ -1,0 +1,31 @@
+# Visual Studio
+.vs/
+*.VC.db
+*.VC.opendb
+
+# Build folders
+out/
+build/
+x64/
+Debug/
+Release/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Qt generated files
+moc_*.cpp
+moc_*.h
+ui_*.h
+qrc_*.cpp
+
+# User specific files
+*.user
+*.suo
+
+# Logs
+*.log
