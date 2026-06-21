@@ -52,14 +52,14 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
-         <widget class="QPushButton" name="btnSearch">
+         <widget class="QLineEdit" name="lineEditSearch">
           <property name="text">
-           <string>Search</string>
+           <string/>
+          </property>
+          <property name="placeholderText">
+           <string>Search Employee...</string>
           </property>
          </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="lineEditSearch"/>
         </item>
        </layout>
       </item>

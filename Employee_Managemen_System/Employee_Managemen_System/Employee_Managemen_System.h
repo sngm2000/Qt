@@ -11,6 +11,11 @@ public:
     Employee_Managemen_System(QWidget *parent = nullptr);
     ~Employee_Managemen_System();
 
+
+
+public:
+    void loadEmployees();
+
 private:
     Ui::Employee_Managemen_SystemClass ui;
 
@@ -19,5 +24,7 @@ private slots:
     void deleteEmployee();
     void editEmployee();
     void saveEmployee();
+    void searchEmployee();
+    void showContextMenu(const QPoint& pos);
 };
 
