@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/ICON">
+        <file>Icones/add-document.png</file>
+        <file>Icones/circle.png</file>
+        <file>Icones/eraser.png</file>
+        <file>Icones/pencil.png</file>
+        <file>Icones/pencil_line.png</file>
+        <file>Icones/rectangle.png</file>
+    </qresource>
+</RCC>
