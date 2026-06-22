@@ -16,5 +16,13 @@ public:
 private:
     Ui::QtPaintClass ui;
     Canvas* mCanvas;
+
+private slots:
+    void NewClicked();
+    void PencilClicked();
+    void LineClicked();
+    void RectangleClicked();
+    void CircleClicked();
+    void clearClicked();
 };
 

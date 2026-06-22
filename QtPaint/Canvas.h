@@ -13,16 +13,18 @@ enum class ToolType
     Eraser
 };
 
-struct Shape
+struct Stroke
 {
-    ToolType tool;
-
-    QPoint start;
-
-    QPoint end;
-
+    QVector<QPoint> points;
     QColor color;
+    int width;
+};
 
+struct Line
+{
+    QPoint start;
+    QPoint end;
+    QColor color;
     int width;
 };
 
@@ -34,6 +36,8 @@ public:
 	explicit Canvas(QWidget* parent = nullptr);
 	~Canvas();
 
+    void setCurrentTool(ToolType tool);
+
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
@@ -43,9 +47,22 @@ protected:
 
 private:
 
-    QVector<QPoint> mPoints;
+    QVector<Stroke> mStrokes;
+    Stroke mCurrentStroke;
+
+    QVector<Line> mLines;
+    Line mCurrentLine;
+
+    QColor mCurrentColor;
+    int mCurrentWidth;
+
+    ToolType mCurrentTool = ToolType::Pencil;
 
     bool mDrawing = false;
 
+    void drawPermanentObjects(QPainter& painter);
+    void drawCurrentTool(QPainter& painter);
+    void drawStroke(QPainter& painter, const Stroke& stroke);
+    void drawLinePreview(QPainter& painter, const Line& line);
 };
 
