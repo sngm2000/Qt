@@ -24,5 +24,7 @@ private slots:
     void RectangleClicked();
     void CircleClicked();
     void clearClicked();
+    void OpenClicked();
+    void SaveClicked();
 };
 

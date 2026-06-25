@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <QPoint>
 #include <QVector>
+#include <qfiledialog.h>
 
 enum class ToolType
 {
@@ -28,6 +29,24 @@ struct Line
     int width;
 };
 
+struct Rectangle
+{
+    QPoint start;
+    QPoint end;
+
+    QColor color;
+    int width;
+};
+
+struct Circle
+{
+    QPoint start;
+    QPoint end;
+
+    QColor color;
+    int width;
+};
+
 class Canvas  : public QWidget
 {
 	Q_OBJECT
@@ -37,6 +56,8 @@ public:
 	~Canvas();
 
     void setCurrentTool(ToolType tool);
+    void clearCanvas();
+    void saveCanvas();
 
 
 protected:
@@ -53,6 +74,12 @@ private:
     QVector<Line> mLines;
     Line mCurrentLine;
 
+    QVector<Rectangle> mRectangles;
+    Rectangle mCurrentRectangle;
+
+    QVector<Circle> mCircles;
+    Circle mCurrentCircle;
+
     QColor mCurrentColor;
     int mCurrentWidth;
 
@@ -64,5 +91,7 @@ private:
     void drawCurrentTool(QPainter& painter);
     void drawStroke(QPainter& painter, const Stroke& stroke);
     void drawLinePreview(QPainter& painter, const Line& line);
+    void drawNormalizedRectangle(QPainter& painter, const Rectangle& rect);
+    void drawCircle(QPainter& painter, const Circle& circle);
 };
 

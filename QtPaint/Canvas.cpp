@@ -2,6 +2,8 @@
 #include <QPainter>  
 #include <QMouseEvent>
 
+QColor mCanvasColor = Qt::white;
+
 Canvas::Canvas(QWidget *parent)  
 : QWidget(parent)  
 {  
@@ -25,6 +27,39 @@ void Canvas::setCurrentTool(ToolType tool)
 	mCurrentTool = tool;
 }
 
+void Canvas::clearCanvas()
+{
+	mStrokes.clear();
+	mLines.clear();
+	mRectangles.clear();
+	mCircles.clear();
+
+	mCurrentStroke.points.clear();
+
+	mDrawing = false;
+
+	update();
+}
+
+void Canvas::saveCanvas()
+{
+	QString fileName =
+		QFileDialog::getSaveFileName(
+			this,
+			"Save Image",
+			"",
+			"PNG (*.png);;JPEG (*.jpg);;Bitmap (*.bmp)");
+
+	if (fileName.isEmpty())
+		return;
+
+	QPixmap pixmap(size());
+
+	render(&pixmap);
+
+	pixmap.save(fileName);
+}
+
 void Canvas::paintEvent(QPaintEvent * event)  
 {  
    QWidget::paintEvent(event);  
@@ -43,40 +78,50 @@ void Canvas::mousePressEvent(QMouseEvent* event)
 		switch (mCurrentTool)
 		{
 			case ToolType::Pencil:
+			case ToolType::Eraser:
+			{
 				mCurrentStroke.points.clear();
 				mCurrentStroke.points.push_back(event->pos());
-				mCurrentStroke.color = mCurrentColor;
+
+				if (mCurrentTool == ToolType::Pencil)
+					mCurrentStroke.color = mCurrentColor;
+				else
+					mCurrentStroke.color = mCanvasColor;
+
 				mCurrentStroke.width = mCurrentWidth;
 				break;
+			}
 
 			case ToolType::Line:
 			{
 				mCurrentLine.start = event->pos();
 				mCurrentLine.end = event->pos();
 
-				mCurrentLine.color = mCurrentColor;
+				mCurrentStroke.color = mCurrentColor;
 				mCurrentLine.width = mCurrentWidth;
 				break;
 			}
 
 			case ToolType::Rectangle:
 			{
-				// Future implementation
+				mCurrentRectangle.start = event->pos();
+				mCurrentRectangle.end = event->pos();
+
+				mCurrentRectangle.color = mCurrentColor;
+				mCurrentRectangle.width = mCurrentWidth;
 				break;
 			}
 
 			case ToolType::Circle:
 			{
-				// Future implementation
+				mCurrentCircle.start = event->pos();
+				mCurrentCircle.end = event->pos();
+
+				mCurrentCircle.color = mCurrentColor;
+				mCurrentCircle.width = mCurrentWidth;
+
 				break;
 			}
-
-			case ToolType::Eraser:
-			{
-				// Future implementation
-				break;
-			}
-
 		}
 
 		mDrawing = true;
@@ -88,6 +133,7 @@ void Canvas::mouseMoveEvent(QMouseEvent* event)
 	switch (mCurrentTool)
 	{
 		case ToolType::Pencil:
+		case ToolType::Eraser:
 		{
 			if (mDrawing)
 			{
@@ -109,19 +155,21 @@ void Canvas::mouseMoveEvent(QMouseEvent* event)
 
 		case ToolType::Rectangle:
 		{
-			// Future implementation
+			if (mDrawing)
+			{
+				mCurrentRectangle.end = event->pos();
+				update();
+			}
 			break;
 		}
 
 		case ToolType::Circle:
 		{
-			// Future implementation
-			break;
-		}
-
-		case ToolType::Eraser:
-		{
-			// Future implementation
+			if (mDrawing)
+			{
+				mCurrentCircle.end = event->pos();
+				update();
+			}
 			break;
 		}
 	}
@@ -132,47 +180,83 @@ void Canvas::mouseReleaseEvent(QMouseEvent* event)
 {  
 	Q_UNUSED(event);
 
-	switch (mCurrentTool)
+	if (mDrawing)
 	{
-	case ToolType::Pencil:
-	{
-		if (!mCurrentStroke.points.isEmpty())
+		switch (mCurrentTool)
 		{
-			mStrokes.push_back(mCurrentStroke);
+		case ToolType::Pencil:
+		case ToolType::Eraser:
+		{
+			if (!mCurrentStroke.points.isEmpty())
+			{
+				mStrokes.push_back(mCurrentStroke);
+			}
+
+			mDrawing = false;
+			update();
+
+			break;
 		}
 
-		mDrawing = false;
-		update();
+		case ToolType::Line:
+		{
+			mCurrentLine.end = event->pos();
+			mLines.push_back(mCurrentLine);
 
-		break;
+			mDrawing = false;
+			update();
+
+			break;
+		}
+
+		case ToolType::Rectangle:
+		{
+			mCurrentRectangle.end = event->pos();
+			mRectangles.push_back(mCurrentRectangle);
+
+			mDrawing = false;
+			update();
+
+			break;
+		}
+
+		case ToolType::Circle:
+		{
+			mCurrentCircle.end = event->pos();
+			mCircles.push_back(mCurrentCircle);
+
+			mDrawing = false;
+			update();
+		}
+
+		default:
+			break;
+		}
 	}
 
-	case ToolType::Line:
-	{
-		mCurrentLine.end = event->pos();
-		mLines.push_back(mCurrentLine);
-
-		mDrawing = false;
-		update();
-
-		break;
-	}
-
-	default:
-		break;
-	}
 }
 
 void Canvas::drawPermanentObjects(QPainter& painter)
 {
-	for (const auto& stroke : mStrokes)
-	{
-		drawStroke(painter, stroke);
-	}
 
 	for (const auto& Line : mLines)
 	{
 		drawLinePreview(painter, Line);
+	}
+
+	for (const auto& Rectangle : mRectangles)
+	{
+		drawNormalizedRectangle(painter, Rectangle);
+	}
+
+	for (const auto& circle : mCircles)
+	{
+		drawCircle(painter, circle);
+	}
+
+	for (const auto& stroke : mStrokes)
+	{
+		drawStroke(painter, stroke);
 	}
 }
 
@@ -184,6 +268,7 @@ void Canvas::drawCurrentTool(QPainter& painter)
 	switch (mCurrentTool)
 	{
 	case ToolType::Pencil:
+	case ToolType::Eraser:
 		drawStroke(painter, mCurrentStroke);
 		break;
 
@@ -192,11 +277,11 @@ void Canvas::drawCurrentTool(QPainter& painter)
 		break;
 
 	case ToolType::Rectangle:
-		//drawRectanglePreview(painter);
+		drawNormalizedRectangle(painter, mCurrentRectangle);
 		break;
 
 	case ToolType::Circle:
-		//drawCirclePreview(painter);
+		drawCircle(painter, mCurrentCircle);
 		break;
 
 	default:
@@ -230,3 +315,41 @@ void Canvas::drawLinePreview(QPainter& painter, const Line& line)
 
 	painter.drawLine(line.start, line.end);
 }
+
+void Canvas::drawNormalizedRectangle(QPainter& painter,const Rectangle& rect)
+{
+	QPen pen;
+
+	pen.setColor(rect.color);
+	pen.setWidth(rect.width);
+
+	painter.setPen(pen);
+
+	QRect rectangle(rect.start, rect.end);
+
+	painter.drawRect(rectangle.normalized());
+}
+
+void Canvas::drawCircle(QPainter& painter, const Circle& circle)
+{
+	QPen pen;
+
+	pen.setColor(circle.color);
+	pen.setWidth(circle.width);
+
+	painter.setPen(pen);
+
+	int dx = circle.end.x() - circle.start.x();
+	int dy = circle.end.y() - circle.start.y();
+
+	int radius = std::sqrt(dx * dx + dy * dy);
+
+	QRect rect(
+		circle.start.x() - radius,
+		circle.start.y() - radius,
+		radius * 2,
+		radius * 2);
+
+	painter.drawEllipse(rect);
+}
+

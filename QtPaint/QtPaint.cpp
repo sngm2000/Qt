@@ -1,5 +1,6 @@
 #include "QtPaint.h"
 #include <QActionGroup>
+#include <QMessageBox>
 
 QtPaint::QtPaint(QWidget *parent)
     : QMainWindow(parent)
@@ -38,6 +39,9 @@ QtPaint::QtPaint(QWidget *parent)
     connect(ui.actionRectangle, &QAction::triggered, this, &QtPaint::RectangleClicked);
     connect(ui.actionCircle, &QAction::triggered, this, &QtPaint::CircleClicked);
     connect(ui.actionClear, &QAction::triggered, this, &QtPaint::clearClicked);
+    connect(ui.actionOpen, &QAction::triggered, this, &QtPaint::OpenClicked);
+    connect(ui.actionSave, &QAction::triggered, this, &QtPaint::SaveClicked);
+    connect(ui.actionExit, &QAction::triggered, this, &QWidget::close);
 }
 
 QtPaint::~QtPaint()
@@ -47,7 +51,7 @@ QtPaint::~QtPaint()
 
 void QtPaint::NewClicked()
 {
-  
+    mCanvas->clearCanvas();
 }
 
 void QtPaint::PencilClicked()
@@ -78,5 +82,21 @@ void QtPaint::clearClicked()
 {
     ui.actionClear->setChecked(true);
     mCanvas->setCurrentTool(ToolType::Eraser);
+}
+
+void QtPaint::OpenClicked()
+{
+#include <QMessageBox>
+
+    QMessageBox::information(
+        this,
+        "Information",
+        "Comming Soon.."
+    );
+}
+
+void QtPaint::SaveClicked()
+{
+    mCanvas->saveCanvas();
 }
 
