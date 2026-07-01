@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
+#include <QElapsedTimer>
 
 class DownloadTask : public QObject
 {
@@ -35,6 +36,8 @@ signals:
     void progressChanged(qint64 bytesReceived, qint64 bytesTotal);
     void finished();
     void errorOccurred(const QString& errorString);
+    void downloadCancelled();
+    void speedChanged(double bytesPerSecond);
 
 private slots:
     void onReadyRead();
@@ -57,5 +60,8 @@ private:
     // Progress
     qint64 m_bytesReceived = 0;
     qint64 m_bytesTotal = 0;
+
+    QElapsedTimer m_speedTimer;
+    qint64 m_lastBytesReceived = 0;
 };
 

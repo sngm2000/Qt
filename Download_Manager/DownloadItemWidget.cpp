@@ -14,6 +14,11 @@ DownloadItemWidget::DownloadItemWidget(QWidget *parent)
     ui.lblSpeed->setText("0 KB/s");
 
     ui.lblStatus->setText("Waiting");
+
+    connect(ui.btnCancel,
+        &QPushButton::clicked,
+        this,
+        &DownloadItemWidget::on_btnCancel_clicked);
 }
 
 DownloadItemWidget::~DownloadItemWidget()
@@ -22,6 +27,28 @@ DownloadItemWidget::~DownloadItemWidget()
 void DownloadItemWidget::setFileName(const QString & fileName)
 {
     ui.lblFileName->setText(fileName);
+}
+
+QString DownloadItemWidget::formatBytes(qint64 bytes)
+{
+    const double KB = 1024.0;
+    const double MB = KB * 1024.0;
+    const double GB = MB * 1024.0;
+    const double TB = GB * 1024.0;
+
+    if (bytes >= TB)
+        return QString("%1 TB").arg(bytes / TB, 0, 'f', 2);
+
+    if (bytes >= GB)
+        return QString("%1 GB").arg(bytes / GB, 0, 'f', 2);
+
+    if (bytes >= MB)
+        return QString("%1 MB").arg(bytes / MB, 0, 'f', 2);
+
+    if (bytes >= KB)
+        return QString("%1 KB").arg(bytes / KB, 0, 'f', 2);
+
+    return QString("%1 Bytes").arg(bytes);
 }
 
 
@@ -40,8 +67,8 @@ void DownloadItemWidget::updateProgress(qint64 received, qint64 total)
 
     ui.lblDownloaded->setText(
         QString("%1 / %2")
-        .arg(received)
-        .arg(total));
+        .arg(formatBytes(received))
+        .arg(formatBytes(total)));
 
     ui.lblStatus->setText("Downloading");
 }
@@ -58,4 +85,22 @@ void DownloadItemWidget::downloadFinished()
 void DownloadItemWidget::downloadFailed(const QString& error)
 {
     ui.lblStatus->setText(error);
+}
+
+void DownloadItemWidget::on_btnCancel_clicked()
+{
+    emit cancelRequested();
+}
+
+void DownloadItemWidget::downloadCancelled()
+{
+    ui.lblStatus->setText("Cancelled");
+}
+
+void DownloadItemWidget::updateSpeed(double bytesPerSecond)
+{
+    ui.lblSpeed->setText(
+        formatBytes(
+            static_cast<qint64>(bytesPerSecond))
+        + "/s");
 }

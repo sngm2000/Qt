@@ -101,6 +101,21 @@ void Download_Manager::on_btnDownload_clicked()
         widget,
         &DownloadItemWidget::downloadFailed);
 
+    connect(widget,
+        &DownloadItemWidget::cancelRequested,
+        task,
+        &DownloadTask::cancel);
+
+    connect(task,
+        &DownloadTask::downloadCancelled,
+        widget,
+        &DownloadItemWidget::downloadCancelled);
+
+    connect(task,
+        &DownloadTask::speedChanged,
+        widget,
+        &DownloadItemWidget::updateSpeed);
+
     // Start Download
     task->start();
 }

@@ -62,6 +62,9 @@ void DownloadTask::start()
 
     m_reply = m_networkManager->get(request);
 
+    m_lastBytesReceived = 0;
+    m_speedTimer.start();
+
     connect(m_reply,
         &QNetworkReply::readyRead,
         this,
@@ -85,9 +88,14 @@ void DownloadTask::start()
 
 void DownloadTask::cancel()
 {
-    if (m_reply)
+    if (!m_reply)
+        return;
+
+    m_reply->abort();
+
+    if (m_file.isOpen())
     {
-        m_reply->abort();
+        m_file.close();
     }
 }
 
@@ -104,20 +112,46 @@ void DownloadTask::onDownloadProgress(qint64 received,qint64 total)
     m_bytesReceived = received;
     m_bytesTotal = total;
 
+    qint64 elapsed = m_speedTimer.elapsed();
+    if (elapsed >= 1000)
+    {
+        qint64 deltaBytes =
+            received - m_lastBytesReceived;
+
+        double bytesPerSecond =
+            deltaBytes * 1000.0 / elapsed;
+
+        emit speedChanged(bytesPerSecond);
+
+        m_lastBytesReceived = received;
+
+        m_speedTimer.restart();
+    }
     emit progressChanged(received, total);
 }
 
 void DownloadTask::onFinished()
 {
-    if (m_reply)
-    {
-        m_file.write(m_reply->readAll());
+    if (!m_reply)
+        return;
 
-        m_file.close();
+    if (m_reply->error() == QNetworkReply::OperationCanceledError)
+    {
+        QFile::remove(m_savePath);
 
         m_reply->deleteLater();
         m_reply = nullptr;
+
+        emit downloadCancelled();
+        return;
     }
+
+    m_file.write(m_reply->readAll());
+
+    m_file.close();
+
+    m_reply->deleteLater();
+    m_reply = nullptr;
 
     emit finished();
 }
